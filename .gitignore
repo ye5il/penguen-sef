@@ -2,3 +2,7 @@ node_modules/
 .dene/
 dist/
 .DS_Store
+
+# Yerel
+yedek/
+__pycache__/

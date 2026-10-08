@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Penguen Şef</title>
+  <!-- Ortak dosyalar MUTLAK yoldan ve sürümlü (/marka/1/, /sdk/1/); oyunun kendi dosyaları GÖRELİ. -->
+  <link rel="stylesheet" href="/marka/1/marka.css">
+  <link rel="stylesheet" href="stil.css">
+</head>
+<body>
+  <div id="oyun" aria-label="Penguen Şef — müşterilere servis yap, mutfakta yemek pişir"></div>
+  <!-- Satır içi betik ve stil YOK: oyun sunucusunun CSP'si (default-src 'self') ikisini de engeller. -->
+  <script src="/sdk/1/lisem-oyun.js"></script>
+  <script src="kutuphane/phaser.min.js"></script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

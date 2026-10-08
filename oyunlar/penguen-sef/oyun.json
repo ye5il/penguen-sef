@@ -1,0 +1,12 @@
+{
+  "baslik": "Penguen Şef",
+  "ozet": "Şefin pişirdikleri banttan kayıyor: her yemeği isteyen müşteriye sola ya da sağa fırlat, kombo yap, kalplerini koru.",
+  "nasil_oynanir": "Yemekler mutfaktan banda düşer ve aşağı kayar. Ekranın sol ya da sağ yarısına dokun (klavyede ← →): bantta en öndeki yemek o taraftaki müşteriye gider. Doğru yemek puan ve kombo getirir; kimse istemiyorsa dokunma, çöpe düşsün. Yanlış yemek müşterinin sabrını azaltır. Sabrı biten müşteri kızıp gider ve bir kalp götürür; üç kalp bitince el biter. Oyun giderek hızlanır ve yeni yemekler gelir. P duraklatır, M sesi kapatır.",
+  "kategori": "aksiyon",
+  "yon": "dikey",
+  "tur": "topluluk",
+  "gelistirici": "",
+  "anonim": false,
+  "kapak_alt": "Mutfak penceresindeki aşçı penguenin önünden aşağı yemek dolu bir bant iniyor; solda burger isteyen bir fok, sağda pizzasını yakalayan bir kutup ayısı.",
+  "surum": "1"
+}

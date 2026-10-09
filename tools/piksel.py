@@ -1,12 +1,14 @@
 """Penguen Şef piksel art üreticisi.
 
-Bütün sprite'ları gerçek piksel ızgarasında (kenar yumuşatma YOK) çizer, koyu
-1 piksellik konturu otomatik ekler ve oyunun assets/images/ klasörüne yerel
-boyutta yazar. Oyun bunları 5 kat (yakın komşu) büyütür.
-Ayrıca Phaser için assets/pack.json yazar.
+1) Bütün sprite'ları gerçek piksel ızgarasında (kenar yumuşatma YOK) çizer, koyu
+   1 piksellik konturu otomatik ekler ve PNG olarak yazar:
+   oyunlar/penguen-sef/kaynak/gorseller/  (yayınlanmaz; düzenlenebilir kaynak)
+2) Bu PNG'lerin piksellerini oyunun src/sprites.js dosyasına gömer. Oyun açılışta
+   onları tuvale kendisi çizer: resim dosyası İNDİRİLMEZ. (iPhone Safari, Lisem'in
+   kısıtlı çerçevesinde indirilen resimleri açamıyor; yeşil çerçeveli kutular çıkıyordu.)
 
-Var olan PNG'lerin üzerine YAZMAZ (kendi çiziminizi aynı adla koyabilirsiniz).
-Hepsini yeniden üretmek için:  python tools/piksel.py --force
+Var olan PNG'lerin üzerine YAZMAZ: kendi çiziminizi aynı adla koyup betiği
+çalıştırırsanız oyuna o gömülür. Hepsini yeniden çizmek için:  --force
 """
 import json
 import math
@@ -17,8 +19,8 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 GAME = ROOT / "oyunlar" / "penguen-sef" / "1"
-IMG_DIR = GAME / "assets" / "images"
-PACK = GAME / "assets" / "pack.json"
+IMG_DIR = ROOT / "oyunlar" / "penguen-sef" / "kaynak" / "gorseller"
+SPRITES_JS = GAME / "src" / "sprites.js"
 
 # ---------------------------------------------------------------- palet
 K = (29, 32, 51)          # kontur
@@ -639,30 +641,60 @@ def all_sprites():
             yield folder, key, fn
 
 
+# sprites.js: her sprite için genişlik, yükseklik, palet (RGBA) ve piksel dizisi
+# ('.' saydam, diğer karakterler palet sırası)
+CODES = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&()*+,-/:;<=>?@[]^_{|}~"
+
+
+def encode(path):
+    im = Image.open(path).convert("RGBA")
+    pal, rows = [], []
+    for y in range(im.height):
+        row = []
+        for x in range(im.width):
+            c = im.getpixel((x, y))
+            if c[3] == 0:
+                row.append(".")
+                continue
+            if c not in pal:
+                pal.append(c)
+            if len(pal) > len(CODES):
+                raise ValueError(f"{path.name}: {len(CODES)} renkten fazla")
+            row.append(CODES[pal.index(c)])
+        rows.append("".join(row))
+    return {"w": im.width, "h": im.height, "pal": [list(c) for c in pal], "px": "".join(rows)}
+
+
+def write_sprites_js(keys):
+    out = {key: encode(IMG_DIR / folder / f"{key}.png") for folder, key in keys}
+    lines = [
+        "// OTOMATİK ÜRETİLDİ — elle değiştirmeyin: python tools/piksel.py",
+        "// Piksel sprite'lar (kaynak: oyunlar/penguen-sef/kaynak/gorseller/*.png).",
+        "// Açılışta src/systems/Sprites.js bunları tuvale çizer; resim dosyası indirilmez.",
+        "export const SPRITES = {",
+    ]
+    for key, d in out.items():
+        lines.append(f"  {key}: {json.dumps(d, separators=(',', ':'))},")
+    lines.append("};")
+    SPRITES_JS.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return len(out), SPRITES_JS.stat().st_size
+
+
 def main():
     force = "--force" in sys.argv
-    made = skipped = removed = 0
-    files = []
-    keep = set()
+    made = skipped = 0
+    keys = []
     for folder, key, fn in all_sprites():
-        rel = f"assets/images/{folder}/{key}.png"
-        keep.add((GAME / rel).resolve())
-        files.append({"type": "image", "key": key, "url": rel})
-        path = GAME / rel
+        path = IMG_DIR / folder / f"{key}.png"
+        keys.append((folder, key))
         if path.exists() and not force:
             skipped += 1
             continue
         path.parent.mkdir(parents=True, exist_ok=True)
         fn().image().save(path)
         made += 1
-    if force:
-        # Eski (artık kullanılmayan) görselleri temizle
-        for f in IMG_DIR.rglob("*.png"):
-            if f.resolve() not in keep:
-                f.unlink()
-                removed += 1
-    PACK.write_text(json.dumps({"main": {"files": files}}, indent=1), encoding="utf-8")
-    print(f"{made} sprite cizildi, {skipped} mevcut korundu, {removed} eski silindi. pack.json: {len(files)} kayit.")
+    n, size = write_sprites_js(keys)
+    print(f"{made} sprite cizildi, {skipped} mevcut korundu. sprites.js: {n} sprite, {size // 1024} KB.")
 
 
 if __name__ == "__main__":
